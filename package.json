@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "@vitalets/google-translate-api": "^9.1.0",
+    "argon2": "^0.30.3",
+    "crypto-js": "^4.1.1",
     "express": "^4.18.2",
     "mongoose": "^6.10.0"
   }

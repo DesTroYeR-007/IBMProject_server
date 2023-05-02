@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const utility = require("../utility");
 const db = require("../db/db");
+var SHA256 = require("crypto-js/sha256");
 
 router.get("/", (req, res) => {
   res.json({ statusCode: 200, message: "Connected to users" });
@@ -11,34 +12,37 @@ router.post("/signup", (req, res) => {
   const { email, password } = req.body;
   if (utility.validateNullCheck(email) && utility.validateNullCheck(password)) {
     try {
-      db.user.collection.insertOne({ email, password }, (err, result) => {
-        if (!err) {
-          if (result) {
-            res.json(
-              utility.consoleAndReply(
-                utility.statusCode.DB_CREATE,
-                utility.message.DB_CREATE + "user",
-                result
-              )
-            );
+      db.user.collection.insertOne(
+        { email, password: SHA256(password).words.reduce((t,x)=>t+x).toLocaleString() },
+        (err, result) => {
+          if (!err) {
+            if (result) {
+              res.json(
+                utility.consoleAndReply(
+                  utility.statusCode.DB_CREATE,
+                  utility.message.DB_CREATE + "user",
+                  result
+                )
+              );
+            } else {
+              res.json(
+                utility.consoleAndReply(
+                  utility.statusCode.DB_CREATE_ERROR,
+                  utility.message.DB_CREATE_ERROR + "user"
+                )
+              );
+            }
           } else {
             res.json(
               utility.consoleAndReply(
                 utility.statusCode.DB_CREATE_ERROR,
-                utility.message.DB_CREATE_ERROR + "user"
+                utility.message.DB_CREATE_ERROR + "user",
+                err
               )
             );
           }
-        } else {
-          res.json(
-            utility.consoleAndReply(
-              utility.statusCode.DB_CREATE_ERROR,
-              utility.message.DB_CREATE_ERROR + "user",
-              err
-            )
-          );
         }
-      });
+      );
     } catch (e) {
       res.json(
         utility.consoleAndReply(
@@ -62,7 +66,7 @@ router.post("/login", (req, res) => {
   const { email, password } = req.body;
   if (utility.validateNullCheck(email) && utility.validateNullCheck(password)) {
     try {
-      db.user.findOne({ email, password }, { password: 0 }, (err, result) => {
+      db.user.findOne({ email, password:SHA256(password).words.reduce((t,x)=>t+x).toLocaleString() }, { password: 0 }, (err, result) => {
         if (!err) {
           if (result) {
             res.json(
